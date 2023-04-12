@@ -2,10 +2,12 @@
 
 import { type FormEvent, useState } from "react"
 import { type Message, useChat } from "@/hooks/use-chat"
+import RecorderButton from "./recorder-button"
 
 export default function Form() {
-  const { history, addMessage, setStatus } = useChat()
   const [message, setMessage] = useState("")
+  const { history, addMessage, setStatus } = useChat()
+  // const [audioURL, setAudioURL] = useState<string | null>(null)
 
   async function onSubmit(e: FormEvent) {
     e.preventDefault()
@@ -20,14 +22,28 @@ export default function Form() {
     setStatus("ready")
   }
 
+  async function handleRecordStop(audioBlob: Blob) {
+    const formData = new FormData()
+    formData.append("file", audioBlob)
+    const response = await fetch("/api/speech", {
+      method: "POST",
+      body: formData,
+    })
+    const text = await response.text()
+    console.log(text)
+  }
+
   return (
-    <form onSubmit={onSubmit}>
-      <input
-        type="text"
-        value={message}
-        style={{ width: "600px" }}
-        onChange={({ target: { value } }) => setMessage(value)}
-      />
-    </form>
+    <div className="prompt">
+      <form onSubmit={onSubmit}>
+        <input
+          type="text"
+          value={message}
+          onChange={({ target: { value } }) => setMessage(value)}
+        />
+      </form>
+      <RecorderButton onStop={handleRecordStop} />
+      {/* {audioURL && <audio src={audioURL} controls />} */}
+    </div>
   )
 }
