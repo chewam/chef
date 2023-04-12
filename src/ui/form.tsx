@@ -6,11 +6,9 @@ import RecorderButton from "./recorder-button"
 
 export default function Form() {
   const [message, setMessage] = useState("")
-  const { history, addMessage, setStatus } = useChat()
-  // const [audioURL, setAudioURL] = useState<string | null>(null)
+  const { history, addMessage, setStatus, resetMessages } = useChat()
 
-  async function onSubmit(e: FormEvent) {
-    e.preventDefault()
+  async function sendMessage(message: string) {
     setStatus("loading")
     const userMessage: Message = { role: "user", content: message }
     addMessage(userMessage)
@@ -22,15 +20,26 @@ export default function Form() {
     setStatus("ready")
   }
 
+  async function onSubmit(e: FormEvent) {
+    e.preventDefault()
+    sendMessage(message)
+  }
+
   async function handleRecordStop(audioBlob: Blob) {
     const formData = new FormData()
+
     formData.append("file", audioBlob)
+
     const response = await fetch("/api/speech", {
       method: "POST",
       body: formData,
     })
+
     const text = await response.text()
-    console.log(text)
+
+    if (text.length) {
+      sendMessage(text)
+    }
   }
 
   return (
@@ -43,7 +52,7 @@ export default function Form() {
         />
       </form>
       <RecorderButton onStop={handleRecordStop} />
-      {/* {audioURL && <audio src={audioURL} controls />} */}
+      <button onClick={() => resetMessages()}>Reset</button>
     </div>
   )
 }

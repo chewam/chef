@@ -17,6 +17,7 @@ export interface Message {
 interface ChatContextValue {
   history: Message[]
   status: "ready" | "loading"
+  resetMessages: () => void
   addMessage: (message: Message) => void
   setStatus: (status: "ready" | "loading") => void
 }
@@ -26,6 +27,7 @@ export const ChatContext = createContext<ChatContextValue>({
   status: "ready",
   setStatus: () => null,
   addMessage: () => null,
+  resetMessages: () => null,
 })
 
 export function ChatProvider({ children }: { children: React.ReactNode }) {
@@ -36,6 +38,10 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
   const addMessage = useCallback((message: Message) => {
     setHistory((messages) => [...messages, message])
   }, [])
+
+  const resetMessages = () => {
+    setHistory([])
+  }
 
   useEffect(() => {
     const history = localStorage.getItem("history")
@@ -57,6 +63,7 @@ export function ChatProvider({ children }: { children: React.ReactNode }) {
       history,
       setStatus,
       addMessage,
+      resetMessages,
     }),
     [status, history, setStatus, addMessage]
   )
